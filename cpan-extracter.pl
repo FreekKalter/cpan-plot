@@ -46,9 +46,6 @@ for my $key (keys %scores){
     }
 }
 
-say Dumper(%scores);
-
-
 sub do_GET {
     my $browser;
     $browser = LWP::UserAgent->new unless $browser;
