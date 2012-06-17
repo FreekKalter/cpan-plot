@@ -9,10 +9,10 @@ use Cwd;
 use Chart::Gnuplot;
 use Path::Class;
 
-
+my @sets;
 for my $file ( qw( total win32 mac ) ){
     open my $fh , "<" , "$file.data" or die "Could not open $file: $!";
-    my (@x, @y, @sets);
+    my (@x, @y);
     while( <$fh> ){
         /(\d{4}-\d{2}-\d{2})\t(\d*)/;
         push @x, $1;
@@ -20,30 +20,23 @@ for my $file ( qw( total win32 mac ) ){
     }
 
     push @sets , Chart::Gnuplot::DataSet->new(
-        xdata => \@x,
-        ydata => \@y,
-        style => 'linespoints',
+        xdata  => \@x,
+        ydata  => \@y,
+        style  => 'linespoints',
+        timefmt => '%Y-%m-%d',      # input time format
     );
-#    my $csplines = Chart::Gnuplot::DataSet->new(
-#        xdata  => \@x,
-#        ydata  => \@y,
-#        style  => 'lines',
-#        smooth => 'csplines',
-#        title  => 'Smoothed by cubic splines',
-#    );
-#    my $bezier = Chart::Gnuplot::DataSet->new(
-#        xdata  => \@x,
-#        ydata  => \@y,
-#        style  => 'lines',
-#        smooth => 'bezier',
-#        title  => 'Smoothed by a Bezier curve',
-#    );
 }
 
 # Initiate the chart object
 my $output = file(getcwd(), "output.png");
 my $chart = Chart::Gnuplot->new(
-   output => $output->as_foreign('Unix'),
+   output   => $output->as_foreign('Unix'),
+   xlabel   => 'Date axis',
+   ylabel   => 'Number of test on cpan',
+   timeaxis => "x",
+   xtics    => {
+        labelfmt => '%y/%m/%d',   
+   },
 );
 
 # Set Gnuplot path for MS Windows

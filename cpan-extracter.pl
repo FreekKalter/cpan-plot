@@ -35,15 +35,11 @@ for my $key (keys %scores){
             )},
     );                   
     my @trs = $tr->descendants(); 
+
     open my $dh, ">>" , "${key}.data";
     print $dh $now->ymd, "\t";
-    if($key eq 'total'){
-        print $dh $trs[1]->as_text(), "\n";
-        $scores{$key}{tests} = $trs[1]->as_text();
-    }else{
-        print $dh $trs[2]->as_text(), "\n";
-        $scores{$key}{tests} = $trs[2]->as_text();
-    }
+
+    print $dh ($key eq 'total') ? $trs[1]->as_text() : $trs[2]->as_text() , "\n";
 }
 
 sub do_GET {
