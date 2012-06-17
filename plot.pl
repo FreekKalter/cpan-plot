@@ -5,27 +5,43 @@ use warnings;
 
 use utf8;
 
+use Cwd;
 use Chart::Gnuplot;
+use Path::Class;
 
-# Data
-my @x = (-10 .. 10);
-my @y = (0 .. 20);
-
-# Create chart object and specify the properties of the chart
+# Initiate the chart object
+my $output = file(getcwd(), 'plot.png');
+say $output;
 my $chart = Chart::Gnuplot->new(
-    output => "fig/simple.png",
-    title  => "Simple testing",
-    xlabel => "My x-axis label",
-    ylabel => "My y-axis label",
+   output => $output->as_foreign('Unix'),
 );
 
-# Create dataset object and specify the properties of the dataset
-my $dataSet = Chart::Gnuplot::DataSet->new(
+# Set Gnuplot path for MS Windows
+$chart->gnuplot('wgnuplot.exe') if ($^O eq 'MSWin32');
+
+# Raw data
+my @x = (1, 2, 3, 4, 5, 6);
+my @y = (2, 8, 3, 2, 4, 0);
+
+my $points = Chart::Gnuplot::DataSet->new(
     xdata => \@x,
     ydata => \@y,
-    title => "Plotting a line from Perl arrays",
-    style => "linespoints",
+    style => 'linespoints',
+);
+my $csplines = Chart::Gnuplot::DataSet->new(
+    xdata  => \@x,
+    ydata  => \@y,
+    style  => 'lines',
+    smooth => 'csplines',
+    title  => 'Smoothed by cubic splines',
+);
+my $bezier = Chart::Gnuplot::DataSet->new(
+    xdata  => \@x,
+    ydata  => \@y,
+    style  => 'lines',
+    smooth => 'bezier',
+    title  => 'Smoothed by a Bezier curve',
 );
 
-## Plot the data set on the chart
-$chart->plot2d($dataSet);
+# Plot the graph
+$chart->plot2d($points, $csplines, $bezier);
