@@ -9,19 +9,35 @@ use Cwd;
 use Chart::Gnuplot;
 use Path::Class;
 
-my @sets;
+my ( @sets, @delta_sets );
 for my $file ( qw( total win32 mac ) ){
     open my $fh , "<" , "$file.data" or die "Could not open $file: $!";
-    my (@x, @y);
+    my ( @x, @y, @x_delta, @y_delta );
+
+    <$fh> =~ /(\d{4}-\d{2}-\d{2})\t(\d*)/ ; 
+    my $yesterday = $2;
+    push @x, $1; 
+    push @y, $2; 
+
     while( <$fh> ){
         /(\d{4}-\d{2}-\d{2})\t(\d*)/;
-        push @x, $1;
-        push @y, $2;
+        push @x       , $1;
+        push @x_delta , $1;
+        push @y       , $2;
+        push @y_delta , $2 - $yesterday;
+        $yesterday = $2;
     }
 
     push @sets , Chart::Gnuplot::DataSet->new(
         xdata  => \@x,
         ydata  => \@y,
+        style  => 'linespoints',
+        timefmt => '%Y-%m-%d',      # input time format
+    );
+    
+    push @delta_sets , Chart::Gnuplot::DataSet->new(
+        xdata  => \@x_delta,
+        ydata  => \@y_delta,
         style  => 'linespoints',
         timefmt => '%Y-%m-%d',      # input time format
     );
@@ -43,3 +59,20 @@ my $chart = Chart::Gnuplot->new(
 $chart->gnuplot('wgnuplot.exe') if ($^O eq 'MSWin32');
 # Plot the graph
 $chart->plot2d(@sets);
+
+# Initiate the chart object
+$output = file(getcwd(), "delta_output.png");
+$chart = Chart::Gnuplot->new(
+   output   => $output->as_foreign('Unix'),
+   xlabel   => 'Date axis',
+   ylabel   => 'Number of test per day',
+   timeaxis => "x",
+   xtics    => {
+        labelfmt => '%y/%m/%d',   
+   },
+);
+
+# Set Gnuplot path for MS Windows
+$chart->gnuplot('wgnuplot.exe') if ($^O eq 'MSWin32');
+# Plot the graph
+$chart->plot2d(@delta_sets);
