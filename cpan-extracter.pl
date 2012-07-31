@@ -11,16 +11,26 @@ use HTML::TreeBuilder;
 use Data::Dumper qw( Dumper );
 use DateTime;
 
+my $dir = $ARGV[0] || ".";
 my %scores = (
-    total   => { address => "http://stats.cpantesters.org/testers.html" ,
-                 tests => 0 },
-    mac     => { address => "http://stats.cpantesters.org/leaders/leaders-darwin-this.html" ,
-                 tests => 0 } ,
-    win32   => { address => "http://stats.cpantesters.org/leaders/leaders-mswin32-this.html" , 
-                 tests => 0 },
+    total   => { address    => "http://stats.cpantesters.org/testers.html" ,
+                 tests      => 0,
+                 column     => 1,
+               },
+    mac     => { address    => "http://stats.cpantesters.org/leaders/leaders-darwin-all.html" ,
+                 tests      => 0, 
+                 column     => 3, 
+               },
+    win32   => { address    => "http://stats.cpantesters.org/leaders/leaders-mswin32-this.html" , 
+                 tests      => 0, 
+                 column     => 3,
+               },
+    linux   => { address    => "http://stats.cpantesters.org/leaders/leaders-linux-all.html" , 
+                 tests      => 0, 
+                 column     => 3,
+               },
 );
 my $now = DateTime->now( time_zone => 'local' );
-
 for my $key (keys %scores){
 
     my $web  = do_GET($scores{$key}{address});
@@ -31,15 +41,15 @@ for my $key (keys %scores){
         '_tag' => 'tr',
         sub { $_[0]->look_down(
                         '_tag' => 'td',
-                        sub{ $_[0]->as_text =~ m/freek.*kalteronline.*org/ }
+                        sub{ $_[0]->as_text =~ m/kalter/i }
             )},
     );                   
     my @trs = $tr->descendants(); 
 
-    open my $dh, ">>" , "${key}.data";
+    open my $dh, ">>" , "$dir/${key}.data";
     print $dh $now->ymd, "\t";
-
-    print $dh ($key eq 'total') ? $trs[1]->as_text() : $trs[2]->as_text() , "\n";
+    say $dh $trs[$scores{$key}{column}]->as_text();
+    close $dh;
 }
 
 sub do_GET {
