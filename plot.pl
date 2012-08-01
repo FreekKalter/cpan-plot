@@ -15,13 +15,13 @@ for my $file ( qw( total win32 mac linux) ){
     open my $fh , "<" , file($dir, "$file.data") or die "Could not open $file: $!";
     my ( @x, @y, @x_delta, @y_delta );
 
-    <$fh> =~ /(\d{4}-\d{2}-\d{2})\t(\d*)/ ; 
+    <$fh> =~ /( \d{4} - \d{2} - \d{2} )  \t (\d*)/x;
     my $yesterday = $2;
     push @x, $1; 
     push @y, $2; 
 
     while( <$fh> ){
-        /(\d{4}-\d{2}-\d{2})\t(\d*)/;
+        /( \d{4} - \d{2} - \d{2} )  \t (\d*)/x;
         push @x       , $1;
         push @x_delta , $1;
         push @y       , $2;
